@@ -10,10 +10,9 @@ import serial
 STARTBLOCK = "SB"
 RECORD_LENGTH = "RL"
 # Ofsets of the PM data (always 2 byte)
-PM_1_0 = "1.0"
+PM_1_0 = "1"
 PM_2_5 = "2.5"
 PM_10 = "10"
-START_DELAY = "SD"
 BAUD_RATE = "BAUD"
 BYTE_ORDER = "BO",
 LSB = "lsb"
@@ -33,30 +32,63 @@ ONEAIR_S3 = {
     PM_1_0: 6,
     PM_2_5: 8,
     PM_10: 10,
-    START_DELAY: 10,
     BAUD_RATE: 9600,
     BYTE_ORDER: MSB,
     MULTIPLIER: 1,
     TIMEOUT: 2
 }
 
-NOVA_SDS021 = {
-    "name": "Nova SDS021",
+NOVA = {
+    "name": "Nova SDS0x1",
     STARTBLOCK: bytes([0xaa, 0xc0]),
     RECORD_LENGTH: 10,
     PM_1_0: None,
     PM_2_5: 2,
     PM_10: 4,
-    START_DELAY: 0,  # Has no DTR control
     BAUD_RATE: 9600,
     BYTE_ORDER: LSB,
     MULTIPLIER: 0.1,
     TIMEOUT: 2
 }
 
+# Data from
+# https://github.com/avaldebe/AQmon/blob/master/lua_modules/pms3003.lua
+PLANTOWER1 = {
+    "name": "Plantower PMS1003/5003,7003",
+    STARTBLOCK: bytes([0x42, 0x4d, 0x00, 0x1c]),
+    RECORD_LENGTH: 32,
+    PM_1_0: 4,
+    PM_2_5: 6,
+    PM_10: 8,
+    BAUD_RATE: 9600,
+    BYTE_ORDER: MSB,
+    MULTIPLIER: 1,
+    TIMEOUT: 2
+}
+
+PLANTOWER2 = {
+    "name": "Plantower PMS2003/3003",
+    STARTBLOCK: bytes([0x42, 0x4d, 0x00, 0x14]),
+    RECORD_LENGTH: 24,
+    PM_1_0: 4,
+    PM_2_5: 6,
+    PM_10: 8,
+    BAUD_RATE: 9600,
+    BYTE_ORDER: MSB,
+    MULTIPLIER: 1,
+    TIMEOUT: 2
+}
+
+
 SUPPORTED_SENSORS = {
     "oneair,s3": ONEAIR_S3,
-    "novafitness,sds021": NOVA_SDS021
+    "novafitness,sds021": NOVA,
+    "novafitness,sds011": NOVA,
+    "plantower,pms1003": PLANTOWER1,
+    "plantower,pms5003": PLANTOWER1,
+    "plantower,pms7003": PLANTOWER1,
+    "plantower,pms2003": PLANTOWER2,
+    "plantower,pms3003": PLANTOWER2,
 }
 
 
@@ -76,7 +108,6 @@ class PMDataCollector():
 
         self.record_length = configuration[RECORD_LENGTH]
         self.start_sequence = configuration[STARTBLOCK]
-        self.start_delay = configuration[START_DELAY]
         self.byte_order = configuration[BYTE_ORDER]
         self.multiplier = configuration[MULTIPLIER]
         self.timeout = configuration[TIMEOUT]
@@ -87,6 +118,8 @@ class PMDataCollector():
         self.config = configuration
         self.data = None
         self.last_poll = None
+        self.start_func = None
+        self.stop_func = None
 
         self.ser = serial.Serial(port=serialdevice,
                                  baudrate=configuration[BAUD_RATE],
@@ -121,15 +154,10 @@ class PMDataCollector():
                 (mytime - self.last_poll) <= 15:
             return self._data
 
-        # Turn on circuit if DTR control is enabled
-        if self.power_control is not None:
-            if self.power_control == DTR_ON:
-                self.ser.setDTR(True)
-            elif self.power_control == DTR_OFF:
-                self.ser.setDTR(False)
-
-            # Fan and circuit might need some seconds to warm up
-            time.sleep(self.start_delay)
+        # Start function that can do several things (e.g. turning the
+        # sensor on)
+        if self.start_func:
+            self.start_func(self.ser)
 
         res = None
         finished = False
@@ -163,12 +191,8 @@ class PMDataCollector():
                 LOGGER.debug("Serial waiting for data, buffer length=%s",
                              len(sbuf))
 
-        # Turn off the circuits again
-        if self.power_control is not None:
-            if self.power_control == DTR_ON:
-                self.ser.setDTR(False)
-            elif self.power_control == DTR_OFF:
-                self.ser.setDTR(True)
+        if self.stop_func:
+            self.stop_func(self.ser)
 
         self._data = res
         self.last_poll = time.time()
