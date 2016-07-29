@@ -1,5 +1,4 @@
 .project
 .pydevproject
 __pycache__
-dist
 pmsensor.egg-info
