@@ -3,3 +3,4 @@
 __pycache__
 pmsensor.egg-info
 .settings
+.DS_Store
