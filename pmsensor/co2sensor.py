@@ -13,6 +13,16 @@ MZH19_READ = [0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79]
 def read_mh_z19(serial_device):
     """ Read the CO2 PPM concenration from a MH-Z19 sensor"""
 
+    result = read_mh_z19_with_temperature(serial_device)
+    if result is None:
+        return None
+    ppm, temp = result
+    return ppm
+
+
+def read_mh_z19_with_temperature(serial_device):
+    """ Read the CO2 PPM concenration and temperature from a MH-Z19 sensor"""
+
     logger = logging.getLogger(__name__)
 
     ser = serial.Serial(port=serial_device,
@@ -25,14 +35,14 @@ def read_mh_z19(serial_device):
     starttime = time.time()
     finished = False
     timeout = 2
-    res = -1
+    res = None
     ser.write(MZH19_READ)
     while not finished:
         mytime = time.time()
         if mytime - starttime > timeout:
             logger.error("read timeout after %s seconds, read %s bytes",
                          timeout, len(sbuf))
-            return {}
+            return None
 
         if ser.inWaiting() > 0:
             sbuf += ser.read(1)
@@ -40,7 +50,7 @@ def read_mh_z19(serial_device):
             if len(sbuf) == MHZ19_SIZE:
                 # TODO: check checksum
 
-                res = sbuf[2]*256 + sbuf[3]
+                res = (sbuf[2]*256 + sbuf[3], sbuf[4] - 40)
                 logger.debug("Finished reading data %s", sbuf)
                 finished = True
 
