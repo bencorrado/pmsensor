@@ -9,6 +9,22 @@ import serial
 
 MHZ19_SIZE = 9
 MZH19_READ = [0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79]
+MZH19_RESET = [0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78]
+
+def reset_mh_z19(serial_device):
+    """reset to zero"""    
+
+    logger = logging.getLogger(__name__)
+
+    ser = serial.Serial(port=serial_device,
+                        baudrate=9600,
+                        parity=serial.PARITY_NONE,
+                        stopbits=serial.STOPBITS_ONE,
+                        bytesize=serial.EIGHTBITS)    
+
+    ser.write(MZH19_RESET)
+
+    return None
 
 def read_mh_z19(serial_device):
     """ Read the CO2 PPM concenration from a MH-Z19 sensor"""
