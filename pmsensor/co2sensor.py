@@ -64,10 +64,19 @@ def read_mh_z19_with_temperature(serial_device):
             sbuf += ser.read(1)
 
             if len(sbuf) == MHZ19_SIZE:
-                # TODO: check checksum
+                logger.debug("Finished reading data %s", sbuf)
+
+                received_checksum = sbuf[-1]
+                logger.debug("received_checksum: %s", received_checksum)
+                # checksum: (NOT (Byte1+Byte1+Byte2+Byte3+Byte5+Byte6+Byte7)) + 1
+                calculated_checksum = (~sum(bytearray(sbuf[1:8])) & 0xFF) + 1
+                logger.debug("calculated_checksum: %s", calculated_checksum)
+                if sbuf[0] != 0xFF or received_checksum != calculated_checksum:
+                    logger.error('bad checksum for data: %s received: %s calculated: %s',
+                                 sbuf, received_checksum, calculated_checksum)
+                    return None
 
                 res = (sbuf[2]*256 + sbuf[3], sbuf[4] - 40)
-                logger.debug("Finished reading data %s", sbuf)
                 finished = True
 
         else:
