@@ -125,7 +125,8 @@ class PMDataCollector():
                                  baudrate=configuration[BAUD_RATE],
                                  parity=serial.PARITY_NONE,
                                  stopbits=serial.STOPBITS_ONE,
-                                 bytesize=serial.EIGHTBITS)
+                                 bytesize=serial.EIGHTBITS,
+                                 timeout=0.1)
 
         # Update date in using a background thread
         if self.scan_interval > 0:
@@ -163,6 +164,12 @@ class PMDataCollector():
         finished = False
         sbuf = bytearray()
         starttime = time.time()
+        checkCode = int(0);
+        expectedCheckCode = int()
+        #it is necessary to reset input buffer because data is cotinously received by the system and placed in the device buffer when serial is open.
+        #But "Home Assistant" code read it only from time to time so the data we read here would be placed in the past. 
+        #Better is to clean the buffer and read new data from "present" time.
+        self.ser.reset_input_buffer()
         while not finished:
             mytime = time.time()
             if mytime - starttime > self.timeout:
@@ -182,6 +189,19 @@ class PMDataCollector():
                         sbuf = sbuf[1:]
 
                 if len(sbuf) == self.record_length:
+                    #Check the control sum if it is known how to do it
+                    if self.config == PLANTOWER1:                    
+                        for c in sbuf[0:(self.record_length-2)]:
+                            checkCode += c
+                        expectedCheckCode = sbuf[30]*256 + sbuf[31]
+                        if checkCode != expectedCheckCode:
+			    #because of data inconsistency clean the buffer
+                            LOGGER.error("PM sensor data sum error %d, expected %d", checkCode, expectedCheckCode)
+                            sbuf = []
+                            checkCode = 0                      
+                            continue    
+
+                    #if it is ok then send it for interpretation
                     res = self.parse_buffer(sbuf)
                     LOGGER.debug("Finished reading data %s", sbuf)
                     finished = True
