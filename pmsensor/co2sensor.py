@@ -10,19 +10,33 @@ import serial
 MHZ19_SIZE = 9
 MZH19_READ = [0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79]
 MZH19_RESET = [0xff, 0x01, 0x87, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78]
+MHZ19_DISABLE_ABC = [0xff, 0x01, 0x79, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86]
+
+def send_data(data, serial_device):
+    """Send data to device"""
+
+    ser = serial.Serial(port=serial_device,
+                        baudrate=9600,
+                        parity=serial.PARITY_NONE,
+                        stopbits=serial.STOPBITS_ONE,
+                        bytesize=serial.EIGHTBITS)
+    ser.write(data)
+
+    return None
+
+def disable_ABC_logic(serial_device):
+    """Disable automatic baseline correction"""
+
+    send_data(MHZ19_DISABLE_ABC, serial_device)
+
+    return None
 
 def reset_mh_z19(serial_device):
     """reset to zero"""    
 
     logger = logging.getLogger(__name__)
 
-    ser = serial.Serial(port=serial_device,
-                        baudrate=9600,
-                        parity=serial.PARITY_NONE,
-                        stopbits=serial.STOPBITS_ONE,
-                        bytesize=serial.EIGHTBITS)    
-
-    ser.write(MZH19_RESET)
+    send_data(MZH19_RESET, serial_device)
 
     return None
 
@@ -41,18 +55,12 @@ def read_mh_z19_with_temperature(serial_device):
 
     logger = logging.getLogger(__name__)
 
-    ser = serial.Serial(port=serial_device,
-                        baudrate=9600,
-                        parity=serial.PARITY_NONE,
-                        stopbits=serial.STOPBITS_ONE,
-                        bytesize=serial.EIGHTBITS)
-
     sbuf = bytearray()
     starttime = time.time()
     finished = False
     timeout = 2
     res = None
-    ser.write(MZH19_READ)
+    send_data(MZH19_READ, serial_device)
     while not finished:
         mytime = time.time()
         if mytime - starttime > timeout:
