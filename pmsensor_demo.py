@@ -1,6 +1,6 @@
 import logging
 import time
-from pmsensor import serial_data_collector as pm
+from pmsensor import serial_pm as pm
 
 
 def main():
