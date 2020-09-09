@@ -79,6 +79,20 @@ PLANTOWER2 = {
     TIMEOUT: 2
 }
 
+# Data from
+# https://www.winsen-sensor.com/d/files/ZH03B.pdf
+WINSEN = {
+    "name": "Winsen ZH03B",
+    STARTBLOCK: bytes([0x42, 0x4d, 0x00, 0x14]),
+    RECORD_LENGTH: 24,
+    PM_1_0: 10,
+    PM_2_5: 12,
+    PM_10: 14,
+    BAUD_RATE: 9600,
+    BYTE_ORDER: MSB,
+    MULTIPLIER: 1,
+    TIMEOUT: 2
+}
 
 SUPPORTED_SENSORS = {
     "oneair,s3": ONEAIR_S3,
@@ -89,6 +103,7 @@ SUPPORTED_SENSORS = {
     "plantower,pms7003": PLANTOWER1,
     "plantower,pms2003": PLANTOWER2,
     "plantower,pms3003": PLANTOWER2,
+    "winsen,zh03b": WINSEN,
 }
 
 
