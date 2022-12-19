@@ -5,6 +5,7 @@ This library lets you read sensor data from serial-connected particulate matter 
 
 - OneAir A3
 - Nova Fitness SDS021
+- Nova Fitness SDL607
 - Plantower PMS1003
 - Plantower PMS2003
 - Plantower PMS3003

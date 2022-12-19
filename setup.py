@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pmsensor',
-      version='0.3',
+      version='0.5',
       description='Library to read data from environment ensors',
       url='https://github.com/open-homeautomation/pmsensor',
       author='Daniel Matuschek',
