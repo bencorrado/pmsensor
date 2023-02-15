@@ -10,6 +10,7 @@ This library lets you read sensor data from serial-connected particulate matter 
 - Plantower PMS3003
 - Plantower PMS5003
 - Plantower PMS7003
+- Winsen ZH03B
 
 It also supports the following CO2-Sensor:
 

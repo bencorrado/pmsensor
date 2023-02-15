@@ -1,6 +1,6 @@
 import logging
 import time
-from pmsensor import serial_data_collector as pm
+from pmsensor import serial_pm as pm
 
 
 def main():
@@ -12,6 +12,8 @@ def main():
                                       pm.SUPPORTED_SENSORS["oneair,s3"]))
 #    sensors.append(pm.PMDataCollector("/dev/tty.SLAB_USBtoUART4",
 #                                      pm.SUPPORTED_SENSORS["plantower,pms7003"]))
+#    sensors.append(pm.PMDataCollector("/dev/tty.SLAB_USBtoUART",
+#                                      pm.SUPPORTED_SENSORS["winsen,zh03b"]))
 
     for s in sensors:
         print(s.supported_values())
