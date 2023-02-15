@@ -38,13 +38,29 @@ ONEAIR_S3 = {
     TIMEOUT: 2
 }
 
-NOVA = {
+NOVA_SDS = {
     "name": "Nova SDS0x1",
     STARTBLOCK: bytes([0xaa, 0xc0]),
     RECORD_LENGTH: 10,
     PM_1_0: None,
     PM_2_5: 2,
     PM_10: 4,
+    BAUD_RATE: 9600,
+    BYTE_ORDER: LSB,
+    MULTIPLIER: 0.1,
+    TIMEOUT: 2
+}
+
+# Data from
+# https://github.com/cezbloch/smog/blob/master/SmogMeters.py
+# PCB internal marking "SDL307"
+NOVA_SDL = {
+    'name': 'Nova SDLx07',
+    STARTBLOCK: bytes([0xaa, 0xa5]),
+    RECORD_LENGTH: 19,
+    PM_1_0: None,
+    PM_2_5: 7,
+    PM_10: 11,
     BAUD_RATE: 9600,
     BYTE_ORDER: LSB,
     MULTIPLIER: 0.1,
@@ -96,8 +112,9 @@ WINSEN = {
 
 SUPPORTED_SENSORS = {
     "oneair,s3": ONEAIR_S3,
-    "novafitness,sds021": NOVA,
-    "novafitness,sds011": NOVA,
+    "novafitness,sds021": NOVA_SDS,
+    "novafitness,sds011": NOVA_SDS,
+    "novafitness,sdl607": NOVA_SDL,
     "plantower,pms1003": PLANTOWER1,
     "plantower,pms5003": PLANTOWER1,
     "plantower,pms7003": PLANTOWER1,
